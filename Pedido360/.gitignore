@@ -1,0 +1,24 @@
+# Carpetas de build
+[Bb]in/
+[Oo]bj/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+
+# Rider / VS Code
+.idea/
+.vscode/
+
+# Archivos de base de datos locales (no se versionan, cada dev usa su LocalDB)
+*.db
+*.db-shm
+*.db-wal
+
+# Secrets de usuario reales (NO la connection string de LocalDB del equipo)
+secrets.json
+
+
+# Logs
+*.log

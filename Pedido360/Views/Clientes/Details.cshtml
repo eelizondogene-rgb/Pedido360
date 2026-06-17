@@ -1,0 +1,46 @@
+@model Pedido360.ViewModels.ClienteDetailsViewModel
+@{
+    ViewData["Title"] = "Detalle cliente";
+}
+
+<div class="form-card p-4">
+    <h1 class="h3">Detalle de cliente</h1>
+    <dl class="row mb-0">
+        <dt class="col-sm-3">Id</dt>
+        <dd class="col-sm-9">@Model.Cliente.Id</dd>
+
+        <dt class="col-sm-3">Nombre completo</dt>
+        <dd class="col-sm-9">@Model.Cliente.Nombre</dd>
+
+        <dt class="col-sm-3">Cedula / Juridica</dt>
+        <dd class="col-sm-9">@Model.Cliente.Cedula</dd>
+
+        <dt class="col-sm-3">Correo electronico</dt>
+        <dd class="col-sm-9">@Model.Cliente.Correo</dd>
+
+        <dt class="col-sm-3">Telefono</dt>
+        <dd class="col-sm-9">@Model.Cliente.Telefono</dd>
+
+        <dt class="col-sm-3">Direccion</dt>
+        <dd class="col-sm-9">@Model.Cliente.Direccion</dd>
+
+        <dt class="col-sm-3">Fecha de registro</dt>
+        <dd class="col-sm-9">@Model.Cliente.FechaDeRegistro.ToString("f")</dd>
+
+        <dt class="col-sm-3">Estado</dt>
+        <dd class="col-sm-9">
+            @if (Model.Cliente.Activo)
+            {
+                <span class="badge bg-success">Activo</span>
+            }
+            else
+            {
+                <span class="badge bg-secondary">Inactivo</span>
+            }
+        </dd>
+    </dl>
+    <div class="mt-3 d-flex gap-2">
+        <a class="btn btn-primary" asp-action="Edit" asp-route-id="@Model.Cliente.Id">Editar</a>
+        <a class="btn btn-outline-secondary" asp-action="Index">Volver</a>
+    </div>
+</div>

@@ -1,0 +1,21 @@
+@model Pedido360.ViewModels.ClienteFormViewModel
+@{
+    ViewData["Title"] = "Editar cliente";
+}
+
+<div class="form-card p-4">
+    <h1 class="h3">Editar cliente</h1>
+    <form asp-action="Edit" method="post">
+        <input asp-for="Cliente.Id" type="hidden" />
+        <input asp-for="Cliente.FechaDeRegistro" type="hidden" />
+        <partial name="_Form" model="Model" />
+        <div class="d-flex gap-2 mt-4">
+            <button type="submit" class="btn btn-primary">Actualizar</button>
+            <a class="btn btn-outline-secondary" asp-action="Index">Volver</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

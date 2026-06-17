@@ -1,0 +1,37 @@
+@model Pedido360.ViewModels.ClienteFormViewModel
+
+<div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+<div class="row g-3">
+    <div class="col-md-8">
+        <label asp-for="Cliente.Nombre" class="form-label"></label>
+        <input asp-for="Cliente.Nombre" class="form-control" placeholder="Ej: Juan Perez Garcia" />
+        <span asp-validation-for="Cliente.Nombre" class="text-danger"></span>
+    </div>
+    <div class="col-md-4">
+        <label asp-for="Cliente.Cedula" class="form-label"></label>
+        <input asp-for="Cliente.Cedula" class="form-control" placeholder="Ej: 1-1234-5678" />
+        <span asp-validation-for="Cliente.Cedula" class="text-danger"></span>
+    </div>
+    <div class="col-md-6">
+        <label asp-for="Cliente.Correo" class="form-label"></label>
+        <input asp-for="Cliente.Correo" class="form-control" type="email" placeholder="Ej: juan@correo.com" />
+        <span asp-validation-for="Cliente.Correo" class="text-danger"></span>
+    </div>
+    <div class="col-md-6">
+        <label asp-for="Cliente.Telefono" class="form-label"></label>
+        <input asp-for="Cliente.Telefono" class="form-control" placeholder="Ej: 8888-8888" />
+        <span asp-validation-for="Cliente.Telefono" class="text-danger"></span>
+    </div>
+    <div class="col-12">
+        <label asp-for="Cliente.Direccion" class="form-label"></label>
+        <input asp-for="Cliente.Direccion" class="form-control" placeholder="Ej: San Jose, Costa Rica" />
+        <span asp-validation-for="Cliente.Direccion" class="text-danger"></span>
+    </div>
+    <div class="col-md-3">
+        <div class="form-check mt-4">
+            <input asp-for="Cliente.Activo" class="form-check-input" type="checkbox" />
+            <label asp-for="Cliente.Activo" class="form-check-label">Activo</label>
+        </div>
+    </div>
+</div>
