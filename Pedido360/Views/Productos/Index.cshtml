@@ -1,0 +1,47 @@
+﻿@model IEnumerable<Pedido360.Models.Producto>
+
+@{
+    ViewData["Title"] = "Productos";
+}
+
+<h1>Productos</h1>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Nuevo producto</a>
+</p>
+
+<form asp-action="Index" method="get" class="mb-3">
+    <input type="text" name="buscar" value="@ViewBag.Buscar" placeholder="Buscar producto..." class="form-control" />
+</form>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Nombre</th>
+            <th>Categoría</th>
+            <th>Precio</th>
+            <th>Impuesto %</th>
+            <th>Stock</th>
+            <th>Activo</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model)
+{
+        <tr>
+            <td>@item.Nombre</td>
+            <td>@item.Categoria?.Nombre</td>
+            <td>@item.Precio</td>
+            <td>@item.ImpuestoPorc</td>
+            <td>@item.Stock</td>
+            <td>@(item.Activo ? "Sí" : "No")</td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.Id">Editar</a> |
+                <a asp-action="Details" asp-route-id="@item.Id">Detalles</a> |
+                <a asp-action="Delete" asp-route-id="@item.Id">Eliminar</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
