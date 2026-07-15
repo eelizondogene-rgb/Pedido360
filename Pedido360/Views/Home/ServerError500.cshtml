@@ -1,0 +1,11 @@
+@{
+    ViewData["Title"] = "Error del servidor";
+    Layout = "_Layout";
+}
+
+<div class="form-card p-5 text-center" style="max-width: 560px; margin: 3rem auto;">
+    <div class="page-eyebrow mb-2" style="color: var(--brick);">Error 500</div>
+    <h1 class="h3 mb-2">Algo fallo de nuestro lado</h1>
+    <p class="text-muted">Ocurrio un error inesperado procesando la solicitud. Ya quedo registrado; intenta de nuevo en unos minutos.</p>
+    <a class="btn btn-primary mt-2" asp-controller="Home" asp-action="Index">Ir al panel</a>
+</div>

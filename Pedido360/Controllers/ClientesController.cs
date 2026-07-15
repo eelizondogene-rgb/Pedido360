@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Pedido360.Data;
@@ -6,8 +7,9 @@ using Pedido360.ViewModels;
 
 namespace Pedido360.Controllers;
 
-// TODO (Hito 2 - seguridad): agregar [Authorize] a nivel de clase y restringir
-// Delete solo a Admin cuando Identity + Roles esten aplicados.
+// Admin y Ventas gestionan clientes (Ventas los necesita para armar pedidos).
+// Solo Admin puede eliminar.
+[Authorize(Roles = "Admin,Ventas")]
 public class ClientesController : Controller
 {
     private readonly ApplicationDbContext _context;
@@ -138,6 +140,7 @@ public class ClientesController : Controller
     }
 
     // GET: Clientes/Delete/5
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Delete(int? id)
     {
         if (id is null)
@@ -152,6 +155,7 @@ public class ClientesController : Controller
 
     // POST: Clientes/Delete/5
     [HttpPost, ActionName("Delete")]
+    [Authorize(Roles = "Admin")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(int id)
     {

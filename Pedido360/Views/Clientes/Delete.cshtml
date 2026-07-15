@@ -3,8 +3,12 @@
     ViewData["Title"] = "Eliminar cliente";
 }
 
+<div class="page-header">
+    <div class="page-eyebrow">Pedidos360 / Clientes</div>
+    <h1 class="h3 mb-1" style="color: var(--brick);">Eliminar cliente</h1>
+</div>
+
 <div class="form-card p-4">
-    <h1 class="h3 text-danger">Eliminar cliente</h1>
     <p class="text-muted">Esta accion no se puede deshacer. Confirme que desea eliminar al siguiente cliente:</p>
 
     <dl class="row">
@@ -12,13 +16,13 @@
         <dd class="col-sm-9">@Model.Cliente.Nombre</dd>
 
         <dt class="col-sm-3">Cedula / Juridica</dt>
-        <dd class="col-sm-9">@Model.Cliente.Cedula</dd>
+        <dd class="col-sm-9 num">@Model.Cliente.Cedula</dd>
 
         <dt class="col-sm-3">Correo electronico</dt>
         <dd class="col-sm-9">@Model.Cliente.Correo</dd>
 
         <dt class="col-sm-3">Telefono</dt>
-        <dd class="col-sm-9">@Model.Cliente.Telefono</dd>
+        <dd class="col-sm-9 num">@Model.Cliente.Telefono</dd>
 
         <dt class="col-sm-3">Fecha de registro</dt>
         <dd class="col-sm-9">@Model.Cliente.FechaDeRegistro.ToString("f")</dd>

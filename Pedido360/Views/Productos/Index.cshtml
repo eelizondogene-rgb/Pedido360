@@ -1,47 +1,106 @@
-﻿@model IEnumerable<Pedido360.Models.Producto>
-
+@model Pedido360.ViewModels.ProductoListaViewModel
 @{
     ViewData["Title"] = "Productos";
 }
 
-<h1>Productos</h1>
+<div class="page-header d-flex justify-content-between align-items-end flex-wrap gap-2">
+    <div>
+        <div class="page-eyebrow">Pedidos360 / Productos</div>
+        <h1 class="h3 mb-1">Catalogo de productos</h1>
+        <p class="text-muted mb-0">Precio, impuesto e inventario disponible para armar pedidos.</p>
+    </div>
+    @if (User.IsInRole("Admin") || User.IsInRole("Operaciones"))
+    {
+        <a asp-action="Create" class="btn btn-primary">Nuevo producto</a>
+    }
+</div>
 
-<p>
-    <a asp-action="Create" class="btn btn-primary">Nuevo producto</a>
-</p>
-
-<form asp-action="Index" method="get" class="mb-3">
-    <input type="text" name="buscar" value="@ViewBag.Buscar" placeholder="Buscar producto..." class="form-control" />
+<form asp-action="Index" method="get" class="row g-2 mb-3 align-items-end">
+    <div class="col-auto">
+        <label class="form-label small mb-1">Buscar</label>
+        <input type="text" name="buscar" value="@Model.Buscar" placeholder="Nombre del producto..." class="form-control" style="min-width: 260px;" />
+    </div>
+    <div class="col-auto">
+        <label class="form-label small mb-1">Categoria</label>
+        <select name="categoriaId" class="form-select" asp-items="Model.Categorias" onchange="this.form.submit()">
+            <option value="">Todas</option>
+        </select>
+    </div>
+    <div class="col-auto">
+        <button type="submit" class="btn btn-outline-secondary">Filtrar</button>
+        @if (!string.IsNullOrWhiteSpace(Model.Buscar) || Model.CategoriaId.HasValue)
+        {
+            <a asp-action="Index" class="btn btn-outline-danger">Limpiar</a>
+        }
+    </div>
 </form>
 
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>Nombre</th>
-            <th>Categoría</th>
-            <th>Precio</th>
-            <th>Impuesto %</th>
-            <th>Stock</th>
-            <th>Activo</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model)
+<div class="table-card">
+    <table class="table table-hover align-middle mb-0">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Categoria</th>
+                <th class="text-end">Precio</th>
+                <th class="text-end">Impuesto</th>
+                <th class="text-end">Stock</th>
+                <th>Estado</th>
+                <th class="text-end">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var item in Model.Productos)
+        {
+            <tr class="row-stub @(item.Stock <= 5 ? "row-stub--danger" : "row-stub--ok")">
+                <td>@item.Nombre</td>
+                <td>@item.Categoria?.Nombre</td>
+                <td class="text-end num">₡@item.Precio.ToString("N2")</td>
+                <td class="text-end num">@item.ImpuestoPorc.ToString("N0")%</td>
+                <td class="text-end num">
+                    @item.Stock
+                    @if (item.Stock <= 5)
+                    {
+                        <span class="tag tag--danger ms-1">Bajo</span>
+                    }
+                </td>
+                <td><partial name="_ActivoTag" model="@item.Activo" /></td>
+                <td class="text-end">
+                    <a class="btn btn-sm btn-outline-primary" asp-action="Details" asp-route-id="@item.Id">Ver</a>
+                    @if (User.IsInRole("Admin") || User.IsInRole("Operaciones"))
+                    {
+                        <a class="btn btn-sm btn-outline-secondary" asp-action="Edit" asp-route-id="@item.Id">Editar</a>
+                    }
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <a class="btn btn-sm btn-outline-danger" asp-action="Delete" asp-route-id="@item.Id">Eliminar</a>
+                    }
+                </td>
+            </tr>
+        }
+        @if (!Model.Productos.Any())
+        {
+            <tr>
+                <td colspan="7" class="text-center text-muted py-4">No hay productos que coincidan con el filtro.</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>
+
+@if (Model.TotalPaginas > 1)
 {
-        <tr>
-            <td>@item.Nombre</td>
-            <td>@item.Categoria?.Nombre</td>
-            <td>@item.Precio</td>
-            <td>@item.ImpuestoPorc</td>
-            <td>@item.Stock</td>
-            <td>@(item.Activo ? "Sí" : "No")</td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Editar</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Detalles</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Eliminar</a>
-            </td>
-        </tr>
+    <nav class="mt-3">
+        <ul class="pagination pagination-sm">
+            @for (var p = 1; p <= Model.TotalPaginas; p++)
+            {
+                <li class="page-item @(p == Model.PaginaActual ? "active" : "")">
+                    <a class="page-link" asp-action="Index"
+                       asp-route-buscar="@Model.Buscar"
+                       asp-route-categoriaId="@Model.CategoriaId"
+                       asp-route-pagina="@p">@p</a>
+                </li>
+            }
+        </ul>
+    </nav>
 }
-    </tbody>
-</table>
+<p class="text-muted small">@Model.TotalRegistros producto(s) en total.</p>

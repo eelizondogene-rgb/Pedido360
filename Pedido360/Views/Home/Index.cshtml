@@ -1,8 +1,89 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+@model Pedido360.ViewModels.PanelViewModel
+@{
+    ViewData["Title"] = "Panel";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="page-header">
+    <div class="page-eyebrow">Pedidos360 / Panel</div>
+    <h1 class="h3 mb-1">Buenas, hoy es @DateTime.Now.ToString("dd/MM/yyyy")</h1>
+    <p class="text-muted mb-0">Estado general del inventario y los pedidos activos.</p>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3">
+        <div class="stat-card">
+            <div class="stat-value">@Model.TotalClientes</div>
+            <div class="stat-label">Clientes activos</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="stat-card">
+            <div class="stat-value">@Model.TotalProductos</div>
+            <div class="stat-label">Productos activos</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="stat-card">
+            <div class="stat-value">@Model.PedidosPendientes</div>
+            <div class="stat-label">Pedidos pendientes</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="stat-card">
+            <div class="stat-value">₡@Model.MontoConfirmadoMes.ToString("N0")</div>
+            <div class="stat-label">Confirmado este mes</div>
+        </div>
+    </div>
+</div>
+
+@if (Model.ProductosBajoStock > 0)
+{
+    <div class="flash flash--error mb-4">
+        <span>@Model.ProductosBajoStock producto(s) con 5 unidades o menos en inventario.</span>
+        <a class="btn btn-sm btn-outline-danger" asp-controller="Productos" asp-action="Index">Revisar productos</a>
+    </div>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-2">
+    <h2 class="h5 mb-0">Ultimos pedidos</h2>
+    @if (User.IsInRole("Admin") || User.IsInRole("Ventas"))
+    {
+        <a class="btn btn-sm btn-brass" asp-controller="Pedidos" asp-action="Create">Nuevo pedido</a>
+    }
+</div>
+
+<div class="table-card">
+    <table class="table align-middle mb-0">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Cliente</th>
+                <th>Fecha</th>
+                <th class="text-end">Total</th>
+                <th>Estado</th>
+                <th class="text-end">Ver</th>
+            </tr>
+        </thead>
+        <tbody>
+        @if (!Model.UltimosPedidos.Any())
+        {
+            <tr>
+                <td colspan="6" class="text-center text-muted py-4">Todavia no hay pedidos registrados.</td>
+            </tr>
+        }
+        @foreach (var p in Model.UltimosPedidos)
+        {
+            <tr>
+                <td class="num">#@p.Id.ToString("D4")</td>
+                <td>@p.ClienteNombre</td>
+                <td>@p.Fecha.ToString("dd/MM/yyyy")</td>
+                <td class="text-end num">₡@p.Total.ToString("N2")</td>
+                <td><partial name="_EstadoPedidoTag" model="@p.Estado" /></td>
+                <td class="text-end">
+                    <a class="btn btn-sm btn-outline-primary" asp-controller="Pedidos" asp-action="Details" asp-route-id="@p.Id">Ver</a>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
 </div>

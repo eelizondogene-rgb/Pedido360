@@ -1,0 +1,77 @@
+@model Pedido360.Models.Pedido
+@{
+    ViewData["Title"] = $"Pedido #{Model.Id:D4}";
+}
+
+<div class="page-header d-flex justify-content-between align-items-end flex-wrap gap-2">
+    <div>
+        <div class="page-eyebrow">Pedidos360 / Pedidos</div>
+        <h1 class="h3 mb-1">Pedido #@Model.Id.ToString("D4")</h1>
+        <p class="text-muted mb-0">
+            Cliente: <strong>@Model.Cliente?.Nombre</strong> ·
+            Registrado el @Model.Fecha.ToString("dd/MM/yyyy HH:mm")
+        </p>
+    </div>
+    <partial name="_EstadoPedidoTag" model="@Model.Estado" />
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="table-card">
+            <table class="table align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th class="text-end">Cantidad</th>
+                        <th class="text-end">Precio unit.</th>
+                        <th class="text-end">Descuento</th>
+                        <th class="text-end">Impuesto</th>
+                        <th class="text-end">Total linea</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var d in Model.Detalles ?? Enumerable.Empty<Pedido360.Models.PedidoDetalle>())
+                {
+                    <tr>
+                        <td>@d.Producto?.Nombre</td>
+                        <td class="text-end num">@d.Cantidad</td>
+                        <td class="text-end num">₡@d.PrecioUnit.ToString("N2")</td>
+                        <td class="text-end num">@(d.Descuento > 0 ? $"-₡{d.Descuento:N2}" : "—")</td>
+                        <td class="text-end num">@d.ImpuestoPorc.ToString("N0")%</td>
+                        <td class="text-end num">₡@d.TotalLinea.ToString("N2")</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="order-total-box mb-3">
+            <div class="line"><span>Subtotal</span><span>₡@Model.Subtotal.ToString("N2")</span></div>
+            <div class="line"><span>Impuestos</span><span>₡@Model.Impuestos.ToString("N2")</span></div>
+            <div class="line total"><span>Total</span><span>₡@Model.Total.ToString("N2")</span></div>
+        </div>
+
+        @if (Model.Estado == "Pendiente")
+        {
+            <form asp-action="Confirmar" asp-route-id="@Model.Id" method="post" class="mb-2">
+                <button type="submit" class="btn btn-primary w-100">Confirmar pedido</button>
+            </form>
+            <form asp-action="Cancelar" asp-route-id="@Model.Id" method="post"
+                  onsubmit="return confirm('¿Cancelar este pedido?');">
+                <button type="submit" class="btn btn-outline-danger w-100">Cancelar pedido</button>
+            </form>
+            <p class="text-muted small mt-2">Al confirmar se descuenta el inventario de cada producto.</p>
+        }
+        else if (Model.Estado == "Confirmado")
+        {
+            <form asp-action="Cancelar" asp-route-id="@Model.Id" method="post"
+                  onsubmit="return confirm('Esto devolvera el inventario descontado. ¿Continuar?');">
+                <button type="submit" class="btn btn-outline-danger w-100">Cancelar pedido</button>
+            </form>
+        }
+
+        <a class="btn btn-outline-secondary w-100 mt-2" asp-action="Index">Volver a pedidos</a>
+    </div>
+</div>

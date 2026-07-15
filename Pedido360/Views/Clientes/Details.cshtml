@@ -3,23 +3,27 @@
     ViewData["Title"] = "Detalle cliente";
 }
 
+<div class="page-header">
+    <div class="page-eyebrow">Pedidos360 / Clientes</div>
+    <h1 class="h3 mb-1">Detalle de cliente</h1>
+</div>
+
 <div class="form-card p-4">
-    <h1 class="h3">Detalle de cliente</h1>
     <dl class="row mb-0">
         <dt class="col-sm-3">Id</dt>
-        <dd class="col-sm-9">@Model.Cliente.Id</dd>
+        <dd class="col-sm-9 num">@Model.Cliente.Id</dd>
 
         <dt class="col-sm-3">Nombre completo</dt>
         <dd class="col-sm-9">@Model.Cliente.Nombre</dd>
 
         <dt class="col-sm-3">Cedula / Juridica</dt>
-        <dd class="col-sm-9">@Model.Cliente.Cedula</dd>
+        <dd class="col-sm-9 num">@Model.Cliente.Cedula</dd>
 
         <dt class="col-sm-3">Correo electronico</dt>
         <dd class="col-sm-9">@Model.Cliente.Correo</dd>
 
         <dt class="col-sm-3">Telefono</dt>
-        <dd class="col-sm-9">@Model.Cliente.Telefono</dd>
+        <dd class="col-sm-9 num">@Model.Cliente.Telefono</dd>
 
         <dt class="col-sm-3">Direccion</dt>
         <dd class="col-sm-9">@Model.Cliente.Direccion</dd>
@@ -28,16 +32,7 @@
         <dd class="col-sm-9">@Model.Cliente.FechaDeRegistro.ToString("f")</dd>
 
         <dt class="col-sm-3">Estado</dt>
-        <dd class="col-sm-9">
-            @if (Model.Cliente.Activo)
-            {
-                <span class="badge bg-success">Activo</span>
-            }
-            else
-            {
-                <span class="badge bg-secondary">Inactivo</span>
-            }
-        </dd>
+        <dd class="col-sm-9"><partial name="_ActivoTag" model="@Model.Cliente.Activo" /></dd>
     </dl>
     <div class="mt-3 d-flex gap-2">
         <a class="btn btn-primary" asp-action="Edit" asp-route-id="@Model.Cliente.Id">Editar</a>

@@ -3,10 +3,11 @@
     ViewData["Title"] = "Clientes";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-3">
+<div class="page-header d-flex justify-content-between align-items-end flex-wrap gap-2">
     <div>
+        <div class="page-eyebrow">Pedidos360 / Clientes</div>
         <h1 class="h3 mb-1">Clientes</h1>
-        <p class="text-muted mb-0">CRUD sobre <code>dbo.Clientes</code> usando Entity Framework Core.</p>
+        <p class="text-muted mb-0">Directorio de clientes B2B habilitados para hacer pedidos.</p>
     </div>
     <a class="btn btn-primary" asp-action="Create">Nuevo cliente</a>
 </div>
@@ -27,7 +28,7 @@
     </div>
 </form>
 
-<div class="table-card p-3">
+<div class="table-card">
     <table class="table table-hover align-middle mb-0">
         <thead>
             <tr>
@@ -44,21 +45,12 @@
         @foreach (var item in Model)
         {
             <tr>
-                <td>@item.Cliente.Id</td>
+                <td class="num">@item.Cliente.Id</td>
                 <td>@item.Cliente.Nombre</td>
-                <td>@item.Cliente.Cedula</td>
+                <td class="num">@item.Cliente.Cedula</td>
                 <td>@item.Cliente.Correo</td>
-                <td>@item.Cliente.Telefono</td>
-                <td>
-                    @if (item.Cliente.Activo)
-                    {
-                        <span class="badge bg-success">Activo</span>
-                    }
-                    else
-                    {
-                        <span class="badge bg-secondary">Inactivo</span>
-                    }
-                </td>
+                <td class="num">@item.Cliente.Telefono</td>
+                <td><partial name="_ActivoTag" model="@item.Cliente.Activo" /></td>
                 <td class="text-end">
                     <a class="btn btn-sm btn-outline-primary"
                        asp-action="Details"
@@ -66,9 +58,12 @@
                     <a class="btn btn-sm btn-outline-secondary"
                        asp-action="Edit"
                        asp-route-id="@item.Cliente.Id">Editar</a>
-                    <a class="btn btn-sm btn-outline-danger"
-                       asp-action="Delete"
-                       asp-route-id="@item.Cliente.Id">Eliminar</a>
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <a class="btn btn-sm btn-outline-danger"
+                           asp-action="Delete"
+                           asp-route-id="@item.Cliente.Id">Eliminar</a>
+                    }
                 </td>
             </tr>
         }

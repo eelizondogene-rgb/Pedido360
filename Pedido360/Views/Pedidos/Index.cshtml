@@ -1,0 +1,66 @@
+@model IEnumerable<Pedido360.Models.Pedido>
+@{
+    ViewData["Title"] = "Pedidos";
+    var estadoActual = ViewBag.Estado as string;
+
+    string ClaseFiltro(string? valor) => estadoActual == valor ? "btn-brass" : "btn-outline-secondary";
+}
+
+<div class="page-header d-flex justify-content-between align-items-end flex-wrap gap-2">
+    <div>
+        <div class="page-eyebrow">Pedidos360 / Pedidos</div>
+        <h1 class="h3 mb-1">Pedidos</h1>
+        <p class="text-muted mb-0">Historial de pedidos con calculo automatico de totales.</p>
+    </div>
+    @if (User.IsInRole("Admin") || User.IsInRole("Ventas"))
+    {
+        <a class="btn btn-primary" asp-action="Create">Nuevo pedido</a>
+    }
+</div>
+
+<div class="btn-group mb-3" role="group">
+    <a class="btn btn-sm @ClaseFiltro(null)" asp-action="Index">Todos</a>
+    <a class="btn btn-sm @ClaseFiltro("Pendiente")" asp-action="Index" asp-route-estado="Pendiente">Pendientes</a>
+    <a class="btn btn-sm @ClaseFiltro("Confirmado")" asp-action="Index" asp-route-estado="Confirmado">Confirmados</a>
+    <a class="btn btn-sm @ClaseFiltro("Cancelado")" asp-action="Index" asp-route-estado="Cancelado">Cancelados</a>
+</div>
+
+<div class="table-card">
+    <table class="table table-hover align-middle mb-0">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Cliente</th>
+                <th>Fecha</th>
+                <th class="text-end">Subtotal</th>
+                <th class="text-end">Impuestos</th>
+                <th class="text-end">Total</th>
+                <th>Estado</th>
+                <th class="text-end">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var pedido in Model)
+        {
+            <tr>
+                <td class="num">#@pedido.Id.ToString("D4")</td>
+                <td>@pedido.Cliente?.Nombre</td>
+                <td>@pedido.Fecha.ToString("dd/MM/yyyy HH:mm")</td>
+                <td class="text-end num">₡@pedido.Subtotal.ToString("N2")</td>
+                <td class="text-end num">₡@pedido.Impuestos.ToString("N2")</td>
+                <td class="text-end num">₡@pedido.Total.ToString("N2")</td>
+                <td><partial name="_EstadoPedidoTag" model="@pedido.Estado" /></td>
+                <td class="text-end">
+                    <a class="btn btn-sm btn-outline-primary" asp-action="Details" asp-route-id="@pedido.Id">Ver</a>
+                </td>
+            </tr>
+        }
+        @if (!Model.Any())
+        {
+            <tr>
+                <td colspan="8" class="text-center text-muted py-4">No hay pedidos con ese filtro.</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>

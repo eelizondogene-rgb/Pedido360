@@ -1,0 +1,10 @@
+@model string
+@{
+    var (clase, texto) = Model switch
+    {
+        "Confirmado" => ("tag--ok", "Confirmado"),
+        "Cancelado" => ("tag--danger", "Cancelado"),
+        _ => ("tag--warn", "Pendiente")
+    };
+}
+<span class="tag @clase">@texto</span>

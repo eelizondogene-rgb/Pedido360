@@ -1,0 +1,261 @@
+@model Pedido360.ViewModels.PedidoFormViewModel
+@{
+    ViewData["Title"] = "Nuevo pedido";
+}
+
+<div class="page-header">
+    <div class="page-eyebrow">Pedidos360 / Pedidos</div>
+    <h1 class="h3 mb-1">Armar pedido</h1>
+    <p class="text-muted mb-0">Busca productos, ajusta cantidad y descuento; el total se recalcula en el servidor por AJAX.</p>
+</div>
+
+<form asp-action="Create" method="post" id="form-pedido">
+    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+    <div id="calc-errores" class="flash flash--error mb-3 d-none"></div>
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="form-card p-4 mb-3">
+                <label asp-for="ClienteId" class="form-label"></label>
+                <select asp-for="ClienteId" asp-items="Model.Clientes" class="form-select" style="max-width: 420px;">
+                    <option value="">Seleccione un cliente...</option>
+                </select>
+                <span asp-validation-for="ClienteId" class="text-danger"></span>
+            </div>
+
+            <div class="form-card p-4">
+                <h2 class="h6 mb-2">Buscar producto</h2>
+                <div class="position-relative" style="max-width: 480px;">
+                    <input type="text" id="buscador-producto" class="form-control" placeholder="Escriba el nombre del producto..." autocomplete="off" />
+                    <div id="sugerencias" class="list-group position-absolute w-100 shadow-sm d-none" style="z-index: 20;"></div>
+                </div>
+
+                <hr class="my-3" />
+
+                <h2 class="h6 mb-2">Lineas del pedido</h2>
+                <div id="lineas-container">
+                    <p id="sin-lineas" class="text-muted small mb-0">Todavia no agregaste productos. Busca uno arriba.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="order-total-box">
+                <div class="line"><span>Subtotal</span><span id="out-subtotal">₡0.00</span></div>
+                <div class="line"><span>Descuentos</span><span id="out-descuentos">-₡0.00</span></div>
+                <div class="line"><span>Impuestos</span><span id="out-impuestos">₡0.00</span></div>
+                <div class="line total"><span>Total</span><span id="out-total">₡0.00</span></div>
+            </div>
+            <button type="submit" id="btn-guardar" class="btn btn-primary w-100 mt-3">Guardar pedido como pendiente</button>
+            <a class="btn btn-outline-secondary w-100 mt-2" asp-action="Index">Cancelar</a>
+            <p class="text-muted small mt-3">El pedido queda en estado <strong>Pendiente</strong>. El inventario solo se descuenta cuando lo confirmes desde el detalle del pedido.</p>
+        </div>
+    </div>
+</form>
+
+<template id="linea-template">
+    <div class="order-line row g-2 align-items-center" data-row>
+        <input type="hidden" class="input-producto-id" />
+        <div class="col-md-4">
+            <div class="fw-semibold nombre-producto"></div>
+            <div class="text-muted small precio-unit"></div>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label small mb-0">Cantidad</label>
+            <input type="number" class="form-control form-control-sm cantidad-input" min="1" value="1" />
+        </div>
+        <div class="col-md-2">
+            <label class="form-label small mb-0">Descuento ₡</label>
+            <input type="number" class="form-control form-control-sm descuento-input" min="0" step="1" value="0" />
+        </div>
+        <div class="col-md-3 text-end num line-total">₡0.00</div>
+        <div class="col-md-1 text-end">
+            <button type="button" class="btn btn-sm btn-outline-danger btn-remove-line" title="Quitar">&times;</button>
+        </div>
+    </div>
+</template>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        (function () {
+            const container = document.getElementById('lineas-container');
+            const sinLineas = document.getElementById('sin-lineas');
+            const template = document.getElementById('linea-template');
+            const buscador = document.getElementById('buscador-producto');
+            const sugerencias = document.getElementById('sugerencias');
+            const erroresBox = document.getElementById('calc-errores');
+            const btnGuardar = document.getElementById('btn-guardar');
+
+            function moneda(valor) {
+                return '\u20A1' + (valor || 0).toLocaleString('es-CR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            }
+
+            // ---------- Autosuggest AJAX: GET /api/productos/buscar?q= ----------
+            let debounceTimer = null;
+            buscador.addEventListener('input', function () {
+                clearTimeout(debounceTimer);
+                const termino = buscador.value.trim();
+                if (termino.length < 2) {
+                    sugerencias.classList.add('d-none');
+                    sugerencias.innerHTML = '';
+                    return;
+                }
+                debounceTimer = setTimeout(() => buscarProductos(termino), 250);
+            });
+
+            document.addEventListener('click', function (e) {
+                if (!sugerencias.contains(e.target) && e.target !== buscador) {
+                    sugerencias.classList.add('d-none');
+                }
+            });
+
+            async function buscarProductos(termino) {
+                try {
+                    const resp = await fetch('/api/productos/buscar?q=' + encodeURIComponent(termino));
+                    if (!resp.ok) return;
+                    const productos = await resp.json();
+                    renderSugerencias(productos);
+                } catch (err) {
+                    console.error('Error buscando productos', err);
+                }
+            }
+
+            function renderSugerencias(productos) {
+                if (!productos.length) {
+                    sugerencias.innerHTML = '<div class="list-group-item text-muted small">Sin coincidencias.</div>';
+                    sugerencias.classList.remove('d-none');
+                    return;
+                }
+                sugerencias.innerHTML = productos.map(p =>
+                    `<button type="button" class="list-group-item list-group-item-action py-2 sugerencia-item"
+                             data-id="${p.id}" data-nombre="${p.nombre}" data-precio="${p.precio}"
+                             data-impuesto="${p.impuesto}" data-stock="${p.stock}">
+                        <div class="d-flex justify-content-between">
+                            <span>${p.nombre}</span>
+                            <span class="num text-muted">${moneda(p.precio)} · stock ${p.stock}</span>
+                        </div>
+                    </button>`
+                ).join('');
+                sugerencias.classList.remove('d-none');
+
+                sugerencias.querySelectorAll('.sugerencia-item').forEach(item => {
+                    item.addEventListener('click', function () {
+                        agregarLinea({
+                            id: this.dataset.id,
+                            nombre: this.dataset.nombre,
+                            precio: parseFloat(this.dataset.precio),
+                            stock: parseInt(this.dataset.stock, 10)
+                        });
+                        buscador.value = '';
+                        sugerencias.classList.add('d-none');
+                        buscador.focus();
+                    });
+                });
+            }
+
+            // ---------- Lineas del pedido ----------
+            function agregarLinea(producto) {
+                const yaExiste = container.querySelector(`[data-row][data-producto-id="${producto.id}"]`);
+                if (yaExiste) {
+                    yaExiste.querySelector('.cantidad-input').stepUp(1);
+                    recalcular();
+                    return;
+                }
+
+                sinLineas.classList.add('d-none');
+
+                const fragment = template.content.cloneNode(true);
+                const fila = fragment.querySelector('[data-row]');
+                fila.dataset.productoId = producto.id;
+                fragment.querySelector('.input-producto-id').value = producto.id;
+                fragment.querySelector('.nombre-producto').textContent = producto.nombre;
+                fragment.querySelector('.precio-unit').textContent = moneda(producto.precio) + ' c/u · stock ' + producto.stock;
+                container.appendChild(fragment);
+                reindexar();
+                recalcular();
+            }
+
+            function reindexar() {
+                const filas = container.querySelectorAll('[data-row]');
+                filas.forEach((fila, idx) => {
+                    fila.querySelector('.input-producto-id').name = `Lineas[${idx}].ProductoId`;
+                    fila.querySelector('.cantidad-input').name = `Lineas[${idx}].Cantidad`;
+                    fila.querySelector('.descuento-input').name = `Lineas[${idx}].Descuento`;
+                });
+                if (filas.length === 0) {
+                    sinLineas.classList.remove('d-none');
+                }
+            }
+
+            container.addEventListener('click', function (e) {
+                if (e.target.closest('.btn-remove-line')) {
+                    e.target.closest('[data-row]').remove();
+                    reindexar();
+                    recalcular();
+                }
+            });
+
+            let recalcularTimer = null;
+            container.addEventListener('input', function () {
+                clearTimeout(recalcularTimer);
+                recalcularTimer = setTimeout(recalcular, 200);
+            });
+
+            // ---------- Calculo en vivo: POST /api/pedidos/calcular ----------
+            async function recalcular() {
+                const filas = Array.from(container.querySelectorAll('[data-row]'));
+
+                if (filas.length === 0) {
+                    document.getElementById('out-subtotal').textContent = moneda(0);
+                    document.getElementById('out-descuentos').textContent = '-' + moneda(0);
+                    document.getElementById('out-impuestos').textContent = moneda(0);
+                    document.getElementById('out-total').textContent = moneda(0);
+                    erroresBox.classList.add('d-none');
+                    btnGuardar.disabled = false;
+                    return;
+                }
+
+                const lineas = filas.map(fila => ({
+                    productoId: parseInt(fila.querySelector('.input-producto-id').value, 10),
+                    cantidad: parseInt(fila.querySelector('.cantidad-input').value, 10) || 0,
+                    descuento: parseFloat(fila.querySelector('.descuento-input').value) || 0
+                }));
+
+                try {
+                    const resp = await fetch('/api/pedidos/calcular', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ lineas })
+                    });
+
+                    if (!resp.ok) return;
+                    const data = await resp.json();
+
+                    data.lineas.forEach(l => {
+                        const fila = container.querySelector(`[data-row][data-producto-id="${l.productoId}"]`);
+                        if (!fila) return;
+                        fila.querySelector('.line-total').textContent = moneda(l.totalLinea);
+                        fila.classList.toggle('text-danger', !l.stockSuficiente);
+                    });
+
+                    document.getElementById('out-subtotal').textContent = moneda(data.subtotal);
+                    document.getElementById('out-descuentos').textContent = '-' + moneda(data.descuentos);
+                    document.getElementById('out-impuestos').textContent = moneda(data.impuestos);
+                    document.getElementById('out-total').textContent = moneda(data.total);
+
+                    if (!data.valido) {
+                        erroresBox.textContent = data.errores.join(' ');
+                        erroresBox.classList.remove('d-none');
+                        btnGuardar.disabled = true;
+                    } else {
+                        erroresBox.classList.add('d-none');
+                        btnGuardar.disabled = false;
+                    }
+                } catch (err) {
+                    console.error('Error calculando el pedido', err);
+                }
+            }
+        })();
+    </script>
+}

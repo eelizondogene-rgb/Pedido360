@@ -3,8 +3,12 @@
     ViewData["Title"] = "Editar cliente";
 }
 
+<div class="page-header">
+    <div class="page-eyebrow">Pedidos360 / Clientes</div>
+    <h1 class="h3 mb-1">Editar cliente</h1>
+</div>
+
 <div class="form-card p-4">
-    <h1 class="h3">Editar cliente</h1>
     <form asp-action="Edit" method="post">
         <input asp-for="Cliente.Id" type="hidden" />
         <input asp-for="Cliente.FechaDeRegistro" type="hidden" />
